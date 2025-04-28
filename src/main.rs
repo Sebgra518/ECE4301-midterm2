@@ -26,7 +26,6 @@ fn main() {
         rand::thread_rng().fill_bytes(&mut key);
         rand::thread_rng().fill_bytes(&mut iv);
 
-
         //Encrypt
         let cipher = Cipher::aes_256_cbc();
         let mut crypter = Crypter::new(cipher, Mode::Encrypt, &key, Some(&iv)).unwrap();
@@ -45,8 +44,6 @@ fn main() {
         count += crypter.finalize(&mut ciphertext[count..]).unwrap();
         ciphertext.truncate(count);
         
-
-
         // Send result as base64-encoded JSON line
         let key_b64 = general_purpose::STANDARD.encode(&key);
         let iv_b64 = general_purpose::STANDARD.encode(&iv);

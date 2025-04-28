@@ -6,6 +6,7 @@ import struct
 from picamera2 import Picamera2
 import base64
 import json
+import os
 
 
 def main():
@@ -18,16 +19,19 @@ def main():
     
     # Initialize the camera
     picam2 = Picamera2()
-    picam2.preview_configuration.main.size = (1280, 720)
+    picam2.preview_configuration.main.size = (1920, 1080)
     picam2.preview_configuration.main.format = "RGB888"
     picam2.start()
 
+    env = os.environ.copy()
+    env["OPENSSL_armcap"] = "1"
     # Create the subprocess for Rust encryption
     proc = subprocess.Popen(
-        ["./target/release/midterm2"],  # Path to the compiled Rust binary
-        stdin=subprocess.PIPE,  # Pipe the input to Rust
-        stdout=subprocess.PIPE,  # Capture the output of Rust (encrypted data)
-        stderr=subprocess.PIPE
+        ["./target/release/midterm2"],  # Path to compiled Rust binary
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env  # Pass modified environment
     )
     
     MAX_UDP_PACKET_SIZE = 64000  # Safe limit
@@ -39,7 +43,6 @@ def main():
         # Capture frame
         frame = picam2.capture_array()
         
-
         # Encode frame to JPEG
         ret, frame_bytes = cv2.imencode('.jpg', frame)
         if not ret:
@@ -88,8 +91,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-#How to disable ARMv8 Gloally:
-#1. cd /boot/cmdline.txt
-#2. add: arm64.disable_aes=1

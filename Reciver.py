@@ -20,7 +20,7 @@ key = None
 
 while True:
     try:
-
+        
         data, addr = sock.recvfrom(64000)
 
         # If receiving Key (first 32 bytes)
@@ -42,11 +42,29 @@ while True:
             frame_size = struct.unpack("!I", data)[0]
             buffer = b""  # Reset buffer
             continue
-
+       
         buffer += data  # Append chunk to buffer
+
 
         # Wait until full frame is received
         if frame_size and len(buffer) >= frame_size:
+
+
+            # Display the encrypted frame as noise
+            try:
+                encrypted_bytes = buffer[:frame_size]
+                # Convert encrypted bytes to an array
+                encrypted_array = np.frombuffer(encrypted_bytes, dtype=np.uint8)
+
+                # Convert To Image
+                side_length = int(np.sqrt(len(encrypted_array) / 3))
+                if side_length > 0:
+                    encrypted_array = encrypted_array[:side_length * side_length * 3]
+                    encrypted_image = encrypted_array.reshape((side_length, side_length, 3))
+
+                    cv2.imshow('Encrypted Stream', encrypted_image)
+            except Exception as e:
+                print(f"Error showing encrypted frame: {e}")
 
             cipher = AES.new(key, AES.MODE_CBC, iv)
             decrypted_data = unpad(cipher.decrypt(buffer[:frame_size]), AES.block_size)
